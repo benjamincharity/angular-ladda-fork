@@ -32,7 +32,8 @@
   angular.module('angular-ladda', [])
     .provider('ladda', function () {
       var opts = {
-        'style': 'zoom-in'
+        'style': 'zoom-out',
+        'duration': 3000
       };
       return {
         setOption: function (newOpts) {
@@ -48,44 +49,86 @@
         restrict: 'A',
         priority: -1,
         link: function (scope, element, attrs) {
+          console.log('Ladda option: ', laddaOption);
+
           element.addClass('ladda-button');
-          if(angular.isUndefined(element.attr('data-style'))) {
-            element.attr('data-style', laddaOption.style || 'zoom-in');
+
+          if( angular.isUndefined( element.attr('data-style') ) ) {
+            element.attr('data-style', laddaOption.style || 'zoom-out');
           }
 
           // ladda breaks childNode's event property.
           // because ladda use innerHTML instead of append node
           if(!element[0].querySelector('.ladda-label')) {
+
             var labelWrapper = document.createElement('span');
-            labelWrapper.className = 'ladda-label';
+                labelWrapper.className = 'ladda-label';
+
             angular.element(labelWrapper).append(element.contents());
+
             element.append(labelWrapper);
+
           }
 
-          // create ladda button
-          var ladda = Ladda.create( element[0] );
 
-          // add watch!
+          //
+          // Create ladda button
+          var ladda = Ladda.create( element[0] );
+          var timer;
+
+
+          //
+          // Add watch!
           scope.$watch(attrs.ladda, function(loading) {
-            if(!loading && !angular.isNumber(loading)) {
+
+            if( !loading && !angular.isNumber(loading) ) {
+
               ladda.stop();
+
               // When the button also have the ng-disabled directive it needs to be
               // re-evaluated since the disabled attribute is removed by the 'stop' method.
               if (attrs.ngDisabled) {
                 element.attr('disabled', scope.$eval(attrs.ngDisabled));
               }
+
+              // Clear the timer if it exists
+              if( timer ) {
+                window.clearTimeout(timer);
+              }
+
               return;
             }
-            if(!ladda.isLoading()) {
+
+            if( !ladda.isLoading() ) {
+
               ladda.start();
+
+              var timerDuration = attrs.duration || laddaOption.duration;
+              var start = new Date();
+              var timeoutVal = Math.floor(timerDuration / 100);
+
+              var animateUpdate = function() {
+                var now = new Date();
+                var timeDiff = now.getTime() - start.getTime();
+                var percentage = Math.round( (timeDiff / timerDuration) * 100 );
+
+                if( percentage <= 100 ) {
+                  ladda.setProgress(percentage / 100);
+                  timer = window.setTimeout(animateUpdate, timeoutVal);
+                }
+              };
+
+              animateUpdate();
+
             }
-            if(angular.isNumber(loading)) {
+
+            if( angular.isNumber(loading) ) {
               ladda.setProgress(loading);
             }
           });
         }
       };
     }]);
-    
+
     return Ladda;
 }));
