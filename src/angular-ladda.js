@@ -49,7 +49,6 @@
         restrict: 'A',
         priority: -1,
         link: function (scope, element, attrs) {
-          console.log('Ladda option: ', laddaOption);
 
           element.addClass('ladda-button');
 
