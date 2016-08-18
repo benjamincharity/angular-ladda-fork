@@ -1,4 +1,4 @@
-/*! angular-ladda 0.2.2 */
+/*! angular-ladda 0.4.1 */
 /**!
  * AngularJS Ladda directive
  * @author Chungsub Kim <subicura@subicura.com>
@@ -45,7 +45,7 @@
         }
       };
     })
-    .directive('ladda', ['ladda', function (laddaOption) {
+    .directive('ladda', ['ladda', '$window', function (laddaOption, $window) {
       return {
         restrict: 'A',
         priority: -1,
@@ -93,7 +93,7 @@
 
               // Clear the timer if it exists
               if( timer ) {
-                window.clearTimeout(timer);
+                $window.clearTimeout(timer);
               }
 
               return;
@@ -114,7 +114,7 @@
 
                 if( percentage <= 100 ) {
                   ladda.setProgress(percentage / 100);
-                  timer = window.setTimeout(animateUpdate, timeoutVal);
+                  timer = $window.setTimeout(animateUpdate, timeoutVal);
                 }
               };
 
